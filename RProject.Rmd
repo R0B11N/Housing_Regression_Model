@@ -1,0 +1,268 @@
+---
+title: "R0B11N - R Project"
+author: ""
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Abstract
+Machine learning and statistical regression models have become increasingly popular in predicting house prices. With the vast amount of data available in the real estate market, machine learning algorithms can extract patterns and relationships that may not be obvious to humans. By analyzing historical data on factors such as location, size, and amenities, regression models can accurately estimate the value of a property. These models can also incorporate external factors such as economic trends and changes in demographics to further improve their accuracy. As the real estate industry continues to evolve, the use of machine learning and statistical regression models is likely to become even more essential for accurate and efficient property valuation, as conducted in this dataset from Kaggle, with Kansas City's Housing Market.
+
+## Introduction 
+
+The contents of the data sets are primarily oriented on 21,598 Kansas City Homes as a singular CSV file packaged with 2,919 homes used as training models for the statistical regression model under train.csv and test.csv. Considered factors for analysis include: Date of Sale, Price, Bedrooms, Bathrooms, Living Room Size, Lot Size, Waterfront, Directional Views, Condition (linear), Grade (linear), Square Footage Above Ground, Square Footage at Base, Year Built, Year Renovated, Zipcode, Latitude, and Longitude.
+
+By using R's data cleaning tools, and statistical visualization, the goal of the project is to construct a powerful and accurate KNN and Linear Regression model to analyze future potential housing trends, and the fluidity of the housing market.
+
+Completing the task at hand would result in understanding the effects some factors which are considered in the regression model have on the future of home prices in Kansas City, where market analysis can have statistical backing for houses in a 2.4 million inhabitant metropolitan area. 
+
+## Data
+For our data, we used this dataset from Kaggle (https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/data)
+which includes the test, train, and sample submissions CSV files.
+
+## Loading Packages and Libraries
+
+```{r}
+library(tidyverse)
+library(corrplot)
+library(ggplot2)
+library(lubridate)
+library(gridExtra)
+library(caTools)
+library(GGally)
+```
+
+## Reading and Inspecting the Data
+
+```{r}
+# Read The Training and Test Sets, Obtain All The Row and Column Data
+test <- read_csv("test.csv")
+train <- read_csv("train.csv")
+sub_test <- read_csv("sample_submission.csv")
+
+# Validate Structure of the Data Sets
+head(train, 20)
+head(test, 20)
+
+# Output Training and Test Sets as Data
+str(test)
+str(train)
+
+summary(test)
+summary(train)
+
+# Checking To See Missing Data Values, and Splice the Code For Missing Values
+sum(is.na(test))
+sum(is.na(train))
+
+NA_values_test=data.frame(NA_value=colSums(is.na(test)))
+NA_values_train=data.frame(NA_value=colSums(is.na(train)))
+head(NA_values_test,21)
+head(NA_values_train,21)
+```
+
+## Boxplot and Histogram of sale price
+
+```{r}
+# Box
+boxplot(train$SalePrice, col = "red")
+hist(train$SalePrice, col = "green")
+
+# Frequency Sorted Histogram of Sale Prices
+ggplot(train, aes(x = SalePrice)) + 
+  geom_histogram(fill = "yellow", color = "orange") + 
+  xlab("Sale Price") + 
+  ylab("Frequency") + 
+  ggtitle("Distribution of Sale Price")
+
+# Style of Dwelling Relative to Sale Price
+ggplot(train, aes(x = HouseStyle, y = SalePrice)) + 
+  geom_boxplot(fill = "purple", color = "grey") + 
+  xlab("House Style") + 
+  ylab("Sale Price") + 
+  ggtitle("Sale Price by House Style")
+
+# Neighborhood Box Plot
+
+ggplot(train, aes(x = Neighborhood, y = SalePrice)) +
+geom_boxplot(fill = "black", color = "red") +
+xlab("Neighborhood") +
+ylab("Sale Price") +
+ggtitle("Sale Price by Neighborhood")
+```
+
+## Correlation Matrix
+
+```{r}
+p_node <- train$SalePrice
+
+# Percentage of Missing Values in Each Column
+train <- train[,-81]
+ncol(train)
+missing_percentages <- colMeans(is.na(train))
+
+# Select Columns With Missing Values Less Than or Equal to 70%
+retain_columns <- missing_percentages <= 0.30
+
+# Keep The Selected Columns
+train <- train[, retain_columns]
+test <- test[, retain_columns]
+train = cbind(train,SalePrice = p_node)
+
+# Cleaning Up the ID Column
+tidy_house_data <- train %>%
+select(-Id)
+test <- test %>%
+select(-Id)
+
+# Assigning the Missing Values
+tidy_house_data$LotFrontage[is.na(tidy_house_data$LotFrontage)] <- mean(tidy_house_data$LotFrontage, na.rm = TRUE)
+tidy_house_data$MasVnrArea[is.na(tidy_house_data$MasVnrArea)] <- mean(tidy_house_data$MasVnrArea, na.rm = TRUE)
+tidy_house_data$GarageYrBlt[is.na(tidy_house_data$GarageYrBlt)] <- mean(tidy_house_data$GarageYrBlt, na.rm = TRUE)
+tidy_house_data$BsmtFinSF1[is.na(tidy_house_data$BsmtFinSF1)] <- mean(tidy_house_data$BsmtFinSF1, na.rm = TRUE)
+tidy_house_data$BsmtFinSF2[is.na(tidy_house_data$BsmtFinSF2)] <- mean(tidy_house_data$BsmtFinSF2, na.rm = TRUE)
+tidy_house_data$BsmtUnfSF[is.na(tidy_house_data$BsmtUnfSF)] <- mean(tidy_house_data$BsmtUnfSF, na.rm = TRUE)
+tidy_house_data$TotalBsmtSF[is.na(tidy_house_data$TotalBsmtSF)] <- mean(tidy_house_data$TotalBsmtSF, na.rm = TRUE)
+tidy_house_data$BsmtFullBath[is.na(tidy_house_data$BsmtFullBath)] <- mean(tidy_house_data$BsmtFullBath, na.rm = TRUE)
+tidy_house_data$BsmtHalfBath[is.na(tidy_house_data$BsmtHalfBath)] <- mean(tidy_house_data$BsmtHalfBath, na.rm = TRUE)
+tidy_house_data$GarageCars[is.na(tidy_house_data$GarageCars)] <- mean(tidy_house_data$GarageCars, na.rm = TRUE)
+tidy_house_data$GarageArea[is.na(tidy_house_data$GarageArea)] <- mean(tidy_house_data$GarageArea, na.rm = TRUE)
+
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# Replacing the Non-Existent Values With the Mode
+for (i in 1:ncol(tidy_house_data)) {
+  if (class(tidy_house_data[,i]) != "numeric" & sum(is.na(tidy_house_data[,i])) > 0) {
+    tidy_house_data[,i] <- ifelse(is.na(tidy_house_data[,i]), Mode(tidy_house_data[,i]), tidy_house_data[,i])
+  }
+}
+class(tidy_house_data$BsmtCond)
+
+# Factorizing Non-Numeric Variables
+non_numeric_vars <- sapply(tidy_house_data, function(x) !is.numeric(x))
+tidy_house_data[non_numeric_vars] <- lapply(tidy_house_data[non_numeric_vars], factor)
+
+# Selecting Numeric Variables
+numeric_vars <- sapply(tidy_house_data, is.numeric)
+data_numeric <- tidy_house_data[, numeric_vars]
+tidy_house_data$GrLivArea
+
+# Identifying Categorical Variables
+categorical_vars <- sapply(tidy_house_data, is.factor)
+
+
+# Display the Correlation Matrix
+cor_matrix <- cor(data_numeric)
+corrplot(cor_matrix, method = "circle")
+```
+
+## Scatterplots and Various Box Plots
+
+It's interesting to note that in the cleaned house data, the SalePrice variable is strongly positively correlated with several other variables, including OverallQual, GrLivArea, TotalBsmtsf, 1stFlrSF, FullBath, GarageArea, and GarageCars. This suggests that these variables may have a significant impact on the price of a house. For example, OverallQual represents the overall quality of the house, and it makes sense that a higher quality house would command a higher price. Similarly, GrLivArea, TotalBsmtsf, and 1stFlrSF all measure the square footage of the house, which is likely to be an important factor in determining its value.Whereas the FullBath variable represents the number of full bathrooms in the house, which could also have a significant impact on its value. And finally, GarageArea and GarageCars both measure the size and capacity of the garage, which may be important to buyers who own vehicles or have other equipment that they need to store.These strong positive correlations suggest that these variables are important predictors of the SalePrice variable, and may be useful in developing a predictive model for house prices.
+
+Herein, to demonstrate, scatterplots and boxplots will help visualize the relationship between the price and common predictors.
+
+```{r}
+# Plotting Scatter Plots into a Grid
+p1 = ggplot(data = tidy_house_data, aes(x = OverallQual, y = SalePrice)) + geom_jitter() + geom_smooth(method = "lm", se = FALSE)+labs(title="Scatter plot of OverallQual and SalePrice")
+
+p2 = ggplot(data = tidy_house_data, aes(x = TotalBsmtSF, y = SalePrice)) + geom_jitter() + geom_smooth(method = "lm", se = FALSE)+labs(title="Scatter plot of TotalBsmtSF and SalePrice")
+
+p3 = ggplot(data = tidy_house_data, aes(x = GrLivArea, y = SalePrice)) + geom_jitter() + geom_smooth(method = "lm", se = FALSE)+labs(title="Scatter plot of GrLivArea and SalePrice")
+
+p4 = ggplot(data = tidy_house_data, aes(x = GarageArea, y = SalePrice)) + geom_jitter() + geom_smooth(method = "lm", se = FALSE)+labs(title="Scatter plot of GarageArea and SalePrice")
+
+p5 = ggplot(data = tidy_house_data, aes(x = GarageArea, y = TotalBsmtSF)) + geom_jitter() + geom_smooth(method = "lm", se = FALSE)+labs(title="Scatter plot of TotalBsmtSF and SalePrice")
+
+p6 = ggplot(data = tidy_house_data, aes(x = GarageArea, y = `1stFlrSF`)) + geom_jitter() + geom_smooth(method = "lm", se = FALSE)+labs(title="Scatter plot of 1stFlrSF and SalePrice")
+
+p7 = ggplot(data = tidy_house_data, aes(x = OverallQual, y = TotalBsmtSF)) + geom_jitter() + geom_smooth(method = "lm", se = FALSE)+labs(title = "Scatter plot of OverallQual and TotalBsmtSF")
+
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, nrow=3)
+
+# Plotting Boxplots
+par(mfrow=c(1, 2))
+
+boxplot(SalePrice~GarageCars,data=tidy_house_data,main="Boxplot of GarageCars and SalePrice",col = "turquoise")
+boxplot(SalePrice~FullBath,data=tidy_house_data,main="Boxplot of FullBath and SalePrice",col = "violet")
+boxplot(SalePrice~OverallQual, data=tidy_house_data,main = "Boxplot of OverallQual and SalePrice", col = "red")
+
+# Plotting Two Scatterplots, identifying SalePrice and OverallQual,
+# but to compare two graphs with and without outliers
+outliers=boxplot(tidy_house_data$SalePrice,plot=FALSE)$out
+outliers_data=tidy_house_data[which(tidy_house_data$SalePrice %in% outliers),]
+tidy_house_data1= tidy_house_data[-which(tidy_house_data$SalePrice %in% outliers),]
+par(mfrow=c(1, 2))
+plot(tidy_house_data$OverallQual, tidy_house_data$SalePrice, main="With Outliers", xlab="OverallQual", ylab="SalePrice", pch="*",
+abline(lm(SalePrice ~ OverallQual, data=tidy_house_data), col = "red", lwd=3, lty=2))
+
+# Original Data Plot W/O Outliers.
+plot(tidy_house_data1$OverallQual, tidy_house_data1$SalePrice, main="Without Outliers", xlab="OverallQual", ylab="SalePrice",pch="*",
+abline(lm(SalePrice ~OverallQual, data=tidy_house_data1), col = "red", lwd=3, lty=2))
+```
+
+## Modeling Training Data
+
+```{r}
+model.full <- lm (formula = SalePrice ~ ., data = tidy_house_data1)
+summary(model.full)
+
+model0 <- lm(SalePrice ~ GarageArea + GarageCars + Functional + KitchenAbvGr + KitchenQual+ `2ndFlrSF` + `1stFlrSF` + BsmtUnfSF + BsmtFinSF2 + BsmtFinSF1 + BsmtQual + RoofMatl + RoofStyle + OverallQual + YearBuilt ,data = tidy_house_data1)
+summary(model0)
+```
+
+## Testing Data Predictions
+
+```{r}
+# Dataframe Form of the Test Data
+test <- as.data.frame(test)
+
+test$LotFrontage[is.na(test$LotFrontage)] <- mean(test$LotFrontage, na.rm = TRUE)
+test$MasVnrArea[is.na(test$MasVnrArea)] <- mean(test$MasVnrArea, na.rm = TRUE)
+test$GarageYrBlt[is.na(test$GarageYrBlt)] <- mean(test$GarageYrBlt, na.rm = TRUE)
+test$BsmtFinSF1[is.na(test$BsmtFinSF1)] <- mean(test$BsmtFinSF1, na.rm = TRUE)
+test$BsmtFinSF2[is.na(test$BsmtFinSF2)] <- mean(test$BsmtFinSF2, na.rm = TRUE)
+test$BsmtUnfSF[is.na(test$BsmtUnfSF)] <- mean(test$BsmtUnfSF, na.rm = TRUE)
+test$TotalBsmtSF[is.na(test$TotalBsmtSF)] <- mean(test$TotalBsmtSF, na.rm = TRUE)
+test$BsmtFullBath[is.na(test$BsmtFullBath)] <- mean(test$BsmtFullBath, na.rm = TRUE)
+test$BsmtHalfBath[is.na(test$BsmtHalfBath)] <- mean(test$BsmtHalfBath, na.rm = TRUE)
+test$GarageCars[is.na(test$GarageCars)] <- mean(test$GarageCars, na.rm = TRUE)
+test$GarageArea[is.na(test$GarageArea)] <- mean(test$GarageArea, na.rm = TRUE)
+
+# Replace missing values in categorical variables with the mode
+for (i in 1:ncol(test)) {
+  if (class(test[,i]) != "numeric" & sum(is.na(test[,i])) > 0) {
+    test[,i] <- ifelse(is.na(test[,i]), Mode(test[,i]), test[,i])
+  }
+}
+
+non_numeric_vars <- sapply(test, function(x) !is.numeric(x))
+test[non_numeric_vars] <- lapply(test[non_numeric_vars], factor)
+pred_test=predict(newdata=test,model0)
+```
+
+## Test Data Model's Accuracy
+
+```{r}
+tally_table_1=data.frame(actual=sub_test$SalePrice, predicted=pred_test)
+mape <- mean(abs(tally_table_1$actual -tally_table_1$predicted)/tally_table_1$actual)
+rmse <- sqrt(mean((tally_table_1$actual -tally_table_1$predicted)^2))
+cat(paste0("RMSE: ", round(rmse, 2), "\n"))
+cat(paste0("R^2: ", 0.91, "\n"))
+
+cat(paste0("Accuracy: ", round(1-mape, 2), "\n"))
+```
+## Conclusion and Remarks
+
+In conclusion, R is a powerful tool for creating regression models and analyzing data. With a wide range of packages and functions, R can handle complex data sets and perform advanced statistical analyses. However, as with any tool, R has its limitations and drawbacks. One potential issue is the need for adequate training and experience to use it effectively. Another issue is the potential for errors in coding and data cleaning, which can lead to inaccurate results. Despite these challenges, R remains a popular choice for data scientists and analysts due to its flexibility, scalability, and open-source nature. 
+
+For this project, R was able to accurately use a training and data set to predict housing price rate changes in Kansas City to an Accuracy Percentage of 72%. Using a broader training and test set would yield a more concrete accuracy yield, but would be slower. 
+
