@@ -118,4 +118,4 @@ NA_values_train=data.frame(NA_value=colSums(is.na(train)))
 # Box
 boxplot(train$SalePrice, col = "red")
 ```
-![alt text]((https://media.discordapp.net/attachments/906212540021895178/1104987989718868019/image.png?width=669&height=324)
+![image]((https://media.discordapp.net/attachments/906212540021895178/1104987989718868019/image.png?width=669&height=324)
