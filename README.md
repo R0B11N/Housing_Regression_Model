@@ -50,3 +50,44 @@ library(gridExtra)
 library(caTools)
 library(GGally)
 ```
+
+# Reading and Inspecting the Data
+```python
+## Read The Training and Test Sets, Obtain All The Row and Column Data
+test <- read_csv("test.csv")
+## Rows: 1459 Columns: 80
+## -- Column specification --------------------------------------------------------
+## Delimiter: ","
+## chr (43): MSZoning, Street, Alley, LotShape, LandContour, Utilities, LotConf...
+## dbl (37): Id, MSSubClass, LotFrontage, LotArea, OverallQual, OverallCond, Ye...
+##
+## i Use ‘spec()‘ to retrieve the full column specification for this data.
+## i Specify the column types or set ‘show_col_types = FALSE‘ to quiet this message.
+
+train <- read_csv("train.csv")
+## Rows: 1460 Columns: 81
+## -- Column specification --------------------------------------------------------
+## Delimiter: ","
+## chr (43): MSZoning, Street, Alley, LotShape, LandContour, Utilities, LotConf...
+## dbl (38): Id, MSSubClass, LotFrontage, LotArea, OverallQual, OverallCond, Ye...
+##
+## i Use ‘spec()‘ to retrieve the full column specification for this data.
+## i Specify the column types or set ‘show_col_types = FALSE‘ to quiet this message.
+
+sub_test <- read_csv("sample_submission.csv")
+## Rows: 1459 Columns: 2
+## -- Column specification --------------------------------------------------------
+## Delimiter: ","
+## dbl (2): Id, SalePrice
+##
+## i Use ‘spec()‘ to retrieve the full column specification for this data.
+## i Specify the column types or set ‘show_col_types = FALSE‘ to quiet this message.
+
+```
+### Validate Structure of the Data Sets, and Output Them As Data.
+```python
+head(train, 20)
+head(test, 20)
+str(data)
+## Truncated To Save Space.
+```
