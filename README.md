@@ -12,6 +12,8 @@ demographics to further improve their accuracy. As the real estate industry cont
 machine learning and statistical regression models is likely to become even more essential for accurate and
 efficient property valuation, as conducted in this dataset from Kaggle, with Kansas City’s Housing Market.
 
+----
+
 # Introduction 
 
 The contents of the data sets are primarily oriented on 21,598 Kansas City Homes as a singular CSV file
@@ -26,9 +28,13 @@ Completing the task at hand would result in understanding the effects some facto
 in the regression model have on the future of home prices in Kansas City, where market analysis can have
 statistical backing for houses in a 2.4 million inhabitant metropolitan area.
 
+----
+
 # Data
 
 For our data, I used this dataset from Kaggle (https://www.kaggle.com/competitions/house-pricesadvanced-regression-techniques/data) which includes the test, train, and sample submissions CSV files.
+
+----
 
 # Loading Packages and Libraries
 
@@ -50,6 +56,8 @@ library(gridExtra)
 library(caTools)
 library(GGally)
 ```
+
+----
 
 # Reading and Inspecting the Data
 ```python
@@ -84,10 +92,31 @@ sub_test <- read_csv("sample_submission.csv")
 ## i Specify the column types or set ‘show_col_types = FALSE‘ to quiet this message.
 
 ```
-### Validate Structure of the Data Sets, and Output Them As Data.
+----
+
+# Validate Structure of the Data Sets, and Output Them As Data.
 ```python
 head(train, 20)
 head(test, 20)
 str(data)
 ## Truncated To Save Space.
+
+## Checking To See Missing Data Values, and Splice the Code For Missing Values
+sum(is.na(test))
+## [1] 7000
+
+sum(is.na(train))
+## [1] 6965
+
+NA_values_test=data.frame(NA_value=colSums(is.na(test)))
+NA_values_train=data.frame(NA_value=colSums(is.na(train)))
 ```
+----
+
+# Boxplot and Histograms
+```python
+# Box
+boxplot(train$SalePrice, col = "red")
+```
+
+----
