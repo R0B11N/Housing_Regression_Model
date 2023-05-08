@@ -119,3 +119,19 @@ NA_values_train=data.frame(NA_value=colSums(is.na(train)))
 boxplot(train$SalePrice, col = "red")
 ```
 ![image](https://media.discordapp.net/attachments/906212540021895178/1104987989718868019/image.png?width=669&height=324)
+
+```python
+# Histogram
+hist(train$SalePrice, col = "green")
+```
+![image](https://media.discordapp.net/attachments/906212540021895178/1104989439752687616/image.png?width=712&height=460)
+
+```python
+# Style of Dwelling Relative to Sale Price
+ggplot(train, aes(x = HouseStyle, y = SalePrice)) +
+geom_boxplot(fill = "purple", color = "grey") +
+xlab("House Style") +
+ylab("Sale Price") +
+ggtitle("Sale Price by House Style")
+```
+![image](https://media.discordapp.net/attachments/906212540021895178/1104989483163713616/image.png?width=743&height=512)
